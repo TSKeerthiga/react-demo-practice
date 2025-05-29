@@ -1,3 +1,5 @@
+/* Ensure there are NO @tailwind directives in this file. Only custom styles below. */
+
 .App {
   text-align: center;
 }
