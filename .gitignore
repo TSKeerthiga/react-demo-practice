@@ -5,11 +5,15 @@
 /.pnp
 .pnp.js
 
+# Ignore VSCode settings folder
+.vscode/
+
 # testing
 /coverage
 
 # production
-/build
+dist/
+build/
 
 # misc
 .DS_Store
