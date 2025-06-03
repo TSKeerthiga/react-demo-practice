@@ -1,0 +1,19 @@
+.employee-list {
+    .employee-item {
+      background-color: #f9fafb;
+      transition: background-color 0.2s ease-in-out;
+  
+      &:hover {
+        background-color: #eef2ff;
+      }
+  
+      button {
+        @apply text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded;
+      }
+    }
+  
+    .btn {
+      @apply bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded;
+    }
+  }
+  

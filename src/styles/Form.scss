@@ -1,0 +1,21 @@
+.form-container {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    max-width: 500px;
+    margin: 0 auto;
+  
+    h2 {
+      @apply text-2xl font-semibold mb-4 text-gray-800;
+    }
+  
+    .form-input {
+      @apply w-full mb-3 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500;
+    }
+  
+    .btn {
+      @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded;
+    }
+  }
+  

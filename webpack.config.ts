@@ -14,6 +14,7 @@ const config: Configuration = {
         path: path.resolve(__dirname, 'dist'),
         filename: 'bundle.js',
         clean: true,
+        publicPath: '/',
     },
     resolve: {
         extensions: ['.ts', '.tsx', '.js'],
@@ -28,6 +29,10 @@ const config: Configuration = {
             {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader', 'postcss-loader'],
+            },
+            {
+                test: /\.scss$/,
+                use: ['style-loader', 'css-loader', 'sass-loader'],
             },
             {
                 test: /\.svg$/,
@@ -46,6 +51,10 @@ const config: Configuration = {
         port: 3000,
         hot: true,
         open: true,
+        historyApiFallback: true,
+        devMiddleware: {
+            publicPath: '/',
+        },
     },
 };
 

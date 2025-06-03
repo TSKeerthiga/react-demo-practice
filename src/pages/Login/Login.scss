@@ -1,0 +1,15 @@
+.login-container {
+    @apply min-h-screen flex items-center justify-center bg-gray-50;
+
+    .login-form {
+        @apply bg-white p-8 rounded-lg shadow-md max-w-md w-full;
+    }
+
+    .form-input {
+        @apply w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500;
+    }
+
+    .error-message {
+        @apply text-red-500 text-sm mt-2;
+    }
+} 
