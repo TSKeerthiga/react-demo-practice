@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEmployees } from '../../../context/EmployeeContext';
 import EmployeeForm from '../../../components/EmployeeForm/EmployeeForm';
@@ -9,8 +9,29 @@ const EditEmployee: React.FC = () => {
     const navigate = useNavigate();
     const { employees, updateEmployee } = useEmployees();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const employeeToEdit = employees.find(emp => emp.id === Number(id));
+    useEffect(() => {
+        const fetchEmployee = () => {
+            try {
+                setIsLoading(true);
+                const employee = employees.find(emp => emp.id === Number(id));
+                if (!employee) {
+                    setError('Employee not found');
+                } else {
+                    setEmployeeToEdit(employee);
+                }
+            } catch (error) {
+                setError('Error fetching employee data');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchEmployee();
+    }, [id, employees]);
 
     const handleSubmit = async (formData: Omit<Employee, 'id'>) => {
         if (!employeeToEdit) return;
@@ -33,15 +54,23 @@ const EditEmployee: React.FC = () => {
         navigate('/employee');
     };
 
-    if (!employeeToEdit) {
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-xl">Loading...</div>
+            </div>
+        );
+    }
+
+    if (error || !employeeToEdit) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="max-w-md w-full mx-auto px-4 py-8 bg-white rounded-lg shadow-md">
-                    <h2 className="text-xl text-red-600 text-center mb-4">Employee not found</h2>
+                    <h2 className="text-xl text-red-600 text-center mb-4">{error || 'Employee not found'}</h2>
                     <div className="text-center">
                         <button
                             onClick={() => navigate('/employee')}
-                            className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                            className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
                         >
                             Back to Employee List
                         </button>

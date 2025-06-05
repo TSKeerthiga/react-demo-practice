@@ -32,7 +32,7 @@ const EmployeeList: React.FC = () => {
                 </div>
                 <button 
                     onClick={handleLogout}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 >
                     Logout
                 </button>
@@ -56,7 +56,7 @@ const EmployeeList: React.FC = () => {
                         <div className="space-x-2">
                             {canEdit && (
                                 <button 
-                                    className="btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded" 
+                                    className="btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-sm" 
                                     onClick={() => navigate(`/employee/edit/${employee.id}`)}
                                 >
                                     Edit
@@ -64,7 +64,7 @@ const EmployeeList: React.FC = () => {
                             )}
                             {canDelete && (
                                 <button 
-                                    className="btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded" 
+                                    className="btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-sm" 
                                     onClick={() => handleDelete(employee.id)}
                                 >
                                     Delete

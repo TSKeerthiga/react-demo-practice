@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useForm, SubmitHandler, UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +27,7 @@ interface EmployeeFormProps {
   onCancel: () => void;
   title: string;
   isLoading?: boolean;
+  onFormChange?: () => void;
 }
 
 interface FormFieldProps {
@@ -76,7 +77,7 @@ const FormField: React.FC<FormFieldProps> = ({
         error 
           ? 'border-red-500 focus:ring-red-500' 
           : 'border-gray-300 focus:ring-blue-500'
-      } focus:border-transparent focus:outline-none focus:ring-2 transition-all duration-200
+      } focus:border-transparent focus:outline-hidden focus:ring-2 transition-all duration-200
         ${disabled ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'}
       `}
       disabled={disabled}
@@ -101,12 +102,14 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   onCancel,
   title,
   isLoading = false,
+  onFormChange
 }) => {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    watch
   } = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
     defaultValues: initialData || {
@@ -115,6 +118,14 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       designation: '',
     },
   });
+
+  // Watch for form changes
+  useEffect(() => {
+    const subscription = watch(() => {
+      onFormChange?.();
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, onFormChange]);
 
   const onSubmitHandler: SubmitHandler<EmployeeFormData> = async (data) => {
     try {
@@ -132,7 +143,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-      <div className="px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
+      <div className="px-8 py-6 bg-linear-to-r from-blue-600 to-blue-700">
         <h2 className="text-2xl font-bold text-white text-center">{title}</h2>
       </div>
 
@@ -176,7 +187,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
             type="button"
             onClick={onCancel}
             className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 
-                     hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                     hover:bg-gray-200 focus:outline-hidden focus:ring-2 focus:ring-offset-2 
                      focus:ring-gray-500 transition-all duration-200 transform hover:scale-105 
                      active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading || isSubmitting}
@@ -186,8 +197,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           <button
             type="submit"
             className="px-6 py-2.5 rounded-lg text-sm font-medium text-white 
-                     bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 
-                     hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                     bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 
+                     hover:to-blue-800 focus:outline-hidden focus:ring-2 focus:ring-offset-2 
                      focus:ring-blue-500 transition-all duration-200 transform hover:scale-105 
                      active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed 
                      shadow-md hover:shadow-lg"
