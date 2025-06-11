@@ -9,9 +9,9 @@ interface EmployeeContextType {
 }
 
 const sampleData: Employee[] = [
-    { id: 1, name: 'Alice Johnson', email: 'alice@example.com', designation: 'Engineer' },
-    { id: 2, name: 'Bob Smith', email: 'bob@example.com', designation: 'Designer' },
-    { id: 3, name: 'Charlie Davis', email: 'charlie@example.com', designation: 'Manager' }
+    { id: 1, name: 'Alice Johnson', email: 'alice@example.com', position: 'Engineer', department: 'Development' },
+    { id: 2, name: 'Bob Smith', email: 'bob@example.com', position: 'Designer', department: 'Development' },
+    { id: 3, name: 'Charlie Davis', email: 'charlie@example.com', position: 'Manager'  , department: 'Management' },
 ];
 
 const EmployeeContext = createContext<EmployeeContextType | null>(null);

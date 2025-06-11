@@ -1,50 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEmployees } from '../../../context/EmployeeContext';
 import EmployeeForm from '../../../components/EmployeeForm/EmployeeForm';
 import type { Employee } from '../../../types/Employee';
+import { fetchEmployWithId, updateEmployee } from '../../../features/employee/employeeSlice';
+import { useAppDispatch } from '../../../Hook/hooks';
 
 const EditEmployee: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { employees, updateEmployee } = useEmployees();
+    // const { employees, updateEmployee } = useEmployees();
+    const dispatch = useAppDispatch();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchEmployee = () => {
+        const fetchEmployee = async () => {
             try {
                 setIsLoading(true);
-                const employee = employees.find(emp => emp.id === Number(id));
-                if (!employee) {
-                    setError('Employee not found');
+                // Simulate fetching employee data
+                const response = await dispatch(fetchEmployWithId(Number(id))).unwrap();
+                if (response) {
+                    setEmployeeToEdit(response);
                 } else {
-                    setEmployeeToEdit(employee);
+                    setError('Employee not found');
                 }
-            } catch (error) {
-                setError('Error fetching employee data');
+            } catch (err) {
+                console.error('Error fetching employee:', err);
+                setError('Failed to load employee data.');
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchEmployee();
-    }, [id, employees]);
+    }  , [id, dispatch]);
 
     const handleSubmit = async (formData: Omit<Employee, 'id'>) => {
         if (!employeeToEdit) return;
-        
+
         try {
             setIsSubmitting(true);
-            await updateEmployee({
-                ...formData,
-                id: employeeToEdit.id
-            });
+            await dispatch(updateEmployee({
+                id: employeeToEdit.id,
+                employeeData: {
+                    name: formData.name,
+                    email: formData.email,
+                    position: formData.position,
+                    department: formData.department,
+                }
+            })).unwrap();
             navigate('/employee');
         } catch (error) {
             console.error('Error updating employee:', error);
+            setError('Failed to update employee.');
         } finally {
             setIsSubmitting(false);
         }

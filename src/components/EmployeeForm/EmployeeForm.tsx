@@ -4,6 +4,7 @@ import { useForm, SubmitHandler, UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Employee } from '../../types/Employee';
+import Header from '../Header/Header';
 
 // Zod schema for form validation
 const employeeSchema = z.object({
@@ -13,7 +14,10 @@ const employeeSchema = z.object({
   email: z.string()
     .email('Invalid email address')
     .max(100, 'Email must be less than 100 characters'),
-  designation: z.string()
+  position: z.string()
+    .min(2, 'Designation must be at least 2 characters')
+    .max(50, 'Designation must be less than 50 characters'),
+  department: z.string()
     .min(2, 'Designation must be at least 2 characters')
     .max(50, 'Designation must be less than 50 characters'),
 });
@@ -42,8 +46,8 @@ interface FormFieldProps {
 
 // Components
 const LoadingSpinner: React.FC = () => (
-  <div 
-    className="inline-block animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent" 
+  <div
+    className="inline-block animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"
     role="status"
     aria-label="Loading"
   >
@@ -51,17 +55,17 @@ const LoadingSpinner: React.FC = () => (
   </div>
 );
 
-const FormField: React.FC<FormFieldProps> = ({ 
-  id, 
-  label, 
-  type = "text", 
-  placeholder, 
-  error, 
-  disabled, 
-  register 
+const FormField: React.FC<FormFieldProps> = ({
+  id,
+  label,
+  type = "text",
+  placeholder,
+  error,
+  disabled,
+  register
 }) => (
   <div className="relative">
-    <label 
+    <label
       htmlFor={id}
       className="block text-sm font-medium text-gray-700 mb-1"
     >
@@ -73,11 +77,10 @@ const FormField: React.FC<FormFieldProps> = ({
       type={type}
       placeholder={placeholder}
       {...register(id)}
-      className={`w-full px-4 py-2.5 rounded-lg border ${
-        error 
-          ? 'border-red-500 focus:ring-red-500' 
-          : 'border-gray-300 focus:ring-blue-500'
-      } focus:border-transparent focus:outline-hidden focus:ring-2 transition-all duration-200
+      className={`w-full px-4 py-2.5 rounded-lg border ${error
+        ? 'border-red-500 focus:ring-red-500'
+        : 'border-gray-300 focus:ring-blue-500'
+        } focus:border-transparent focus:outline-hidden focus:ring-2 transition-all duration-200
         ${disabled ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'}
       `}
       disabled={disabled}
@@ -85,9 +88,9 @@ const FormField: React.FC<FormFieldProps> = ({
       aria-describedby={error ? `${id}-error` : undefined}
     />
     {error && (
-      <p 
+      <p
         id={`${id}-error`}
-        className="mt-1 text-xs text-red-500 absolute" 
+        className="mt-1 text-xs text-red-500 absolute"
         role="alert"
       >
         {error}
@@ -115,7 +118,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     defaultValues: initialData || {
       name: '',
       email: '',
-      designation: '',
+      position: '',
+      department: '',
     },
   });
 
@@ -142,79 +146,94 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-      <div className="px-8 py-6 bg-linear-to-r from-blue-600 to-blue-700">
-        <h2 className="text-2xl font-bold text-white text-center">{title}</h2>
-      </div>
+    <div>
+      <Header />
 
-      <form 
-        onSubmit={handleFormSubmit}
-        className="p-8 space-y-6" 
-        noValidate
-      >
-        <div className="space-y-6">
-          <FormField
-            id="name"
-            label="Name"
-            placeholder="Enter employee name"
-            error={errors.name?.message}
-            disabled={isLoading || isSubmitting}
-            register={register}
-          />
+      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
 
-          <FormField
-            id="email"
-            label="Email"
-            type="email"
-            placeholder="Enter employee email"
-            error={errors.email?.message}
-            disabled={isLoading || isSubmitting}
-            register={register}
-          />
-
-          <FormField
-            id="designation"
-            label="Designation"
-            placeholder="Enter employee designation"
-            error={errors.designation?.message}
-            disabled={isLoading || isSubmitting}
-            register={register}
-          />
+        <div className="px-8 py-6 bg-linear-to-r from-blue-600 to-blue-700">
+          <h2 className="text-2xl font-bold text-white text-center">{title}</h2>
         </div>
 
-        <div className="flex justify-end space-x-4 pt-6 mt-8 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 
+        <form
+          onSubmit={handleFormSubmit}
+          className="p-8 space-y-6"
+          noValidate
+        >
+          <div className="space-y-6">
+            <FormField
+              id="name"
+              label="Name"
+              placeholder="Enter employee name"
+              error={errors.name?.message}
+              disabled={isLoading || isSubmitting}
+              register={register}
+            />
+
+            <FormField
+              id="email"
+              label="Email"
+              type="email"
+              placeholder="Enter employee email"
+              error={errors.email?.message}
+              disabled={isLoading || isSubmitting}
+              register={register}
+            />
+
+            <FormField
+              id="position"
+              label="Designation"
+              placeholder="Enter employee designation"
+              error={errors.position?.message}
+              disabled={isLoading || isSubmitting}
+              register={register}
+            />
+
+            <FormField
+              id="department"
+              label="Department"
+              placeholder="Enter employee department"
+              error={errors.department?.message}
+              disabled={isLoading || isSubmitting}
+              register={register}
+            />
+          </div>
+
+          <div className="flex justify-end space-x-4 pt-6 mt-8 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 
                      hover:bg-gray-200 focus:outline-hidden focus:ring-2 focus:ring-offset-2 
                      focus:ring-gray-500 transition-all duration-200 transform hover:scale-105 
                      active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading || isSubmitting}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2.5 rounded-lg text-sm font-medium text-white 
+              disabled={isLoading || isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-lg text-sm font-medium text-white 
                      bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 
                      hover:to-blue-800 focus:outline-hidden focus:ring-2 focus:ring-offset-2 
                      focus:ring-blue-500 transition-all duration-200 transform hover:scale-105 
                      active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed 
                      shadow-md hover:shadow-lg"
-            disabled={isLoading || isSubmitting}
-          >
-            {isSubmitting ? (
-              <LoadingSpinner />
-            ) : initialData ? (
-              'Update Employee'
-            ) : (
-              'Add Employee'
-            )}
-          </button>
-        </div>
-      </form>
+              disabled={isLoading || isSubmitting}
+            >
+              {isSubmitting ? (
+                <LoadingSpinner />
+              ) : initialData ? (
+                'Update Employee'
+              ) : (
+                'Add Employee'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+
   );
 };
 

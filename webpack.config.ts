@@ -1,8 +1,12 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import webpack from 'webpack';
 import type { Configuration } from 'webpack';
 import 'webpack-dev-server';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Define __dirname manually
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -40,7 +44,11 @@ const config: Configuration = {
             },
         ],
     },
+    
     plugins: [
+        new webpack.DefinePlugin({
+            'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL),
+        }),
         new HtmlWebpackPlugin({
             template: './public/index.html',
             filename: 'index.html',

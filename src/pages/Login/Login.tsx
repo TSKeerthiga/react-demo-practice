@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../../Hook/hooks';
 import { useNavigate } from 'react-router-dom';
 import { validateUser } from '../../data/users';
 import { useRole } from '../../context/RoleContext';
 import './Login.scss';
+import { loginUser } from '../../features/auth/authSlice';
+import { mapBackendRole } from '../../data/mapBackendRole';
 
 const Login: React.FC = () => {
     const [formData, setFormData] = useState({
-        username: '',
+        email: '',
         password: ''
     });
     const [error, setError] = useState<string>('');
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const { status } = useAppSelector((state: { auth: any; }) => state.auth);
     const { role, setRole } = useRole();
 
     useEffect(() => {
@@ -28,15 +33,21 @@ const Login: React.FC = () => {
         setError(''); // Clear error when user types
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const user = validateUser(formData.username, formData.password);
-        
-        if (user) {
-            setRole(user.role);
-            navigate('/employee', { replace: true });
-        } else {
-            setError('Invalid username or password');
+        // const user = validateUser(formData.email, formData.password);
+        try {
+            const res = await dispatch(loginUser({ email: formData.email, password: formData.password })).unwrap();
+            console.log('Login response:', res);
+            if (res) {
+                // throw new Error(res.message || 'Login failed');
+                console.log('Login successful:', res);
+                setRole(mapBackendRole(res.roles)); // Set the role in context
+                navigate('/employee', { replace: true });
+            }
+        } catch (err: any) {
+            console.error('Login error:', err);
+            alert(`Login failed: ${err?.message || 'Unknown error'}`);
         }
     };
 
@@ -56,15 +67,15 @@ const Login: React.FC = () => {
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-xs -space-y-px">
                         <div>
-                            <label htmlFor="username" className="sr-only">Email address</label>
+                            <label htmlFor="email" className="sr-only">Email address</label>
                             <input
-                                id="username"
-                                name="username"
+                                id="email"
+                                name="email"
                                 type="email"
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                 placeholder="Email address"
-                                value={formData.username}
+                                value={formData.email}
                                 onChange={handleChange}
                             />
                         </div>

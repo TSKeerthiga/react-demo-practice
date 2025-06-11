@@ -3,10 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useEmployees } from '../../../context/EmployeeContext';
 import EmployeeForm from '../../../components/EmployeeForm/EmployeeForm';
 import type { Employee } from '../../../types/Employee';
+import { useDispatch } from 'react-redux';
+import { addEmployee } from '../../../features/employee/employeeSlice';
+import { useAppDispatch } from '../../../Hook/hooks';
 
 const AddEmployee: React.FC = () => {
     const navigate = useNavigate();
-    const { addEmployee } = useEmployees();
+    // const { addEmployee } = useEmployees();
+    const dispatch = useAppDispatch();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isDirty, setIsDirty] = useState(false);
@@ -36,9 +40,13 @@ const AddEmployee: React.FC = () => {
         try {
             setError(null);
             setIsSubmitting(true);
-            await addEmployee(formData);
+            const res = await dispatch(addEmployee(formData));
+            if (addEmployee.fulfilled.match(res)) {
+                console.log('Employee added successfully:', res.payload);           
             setIsDirty(false);
-            navigate('/employee');
+                navigate('/employee');
+            }
+           
         } catch (error) {
             console.error('Error adding employee:', error);
             setError('Failed to add employee. Please try again.');

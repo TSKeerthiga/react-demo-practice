@@ -33,11 +33,13 @@ const PrivateRoute: React.FC<{allowedRoles: string[], children: React.ReactNode}
 
 const InitialRedirect: React.FC = () => {
   const { role } = useRole();
+  console.log('InitialRedirect role:', role);
   return <Navigate to={role ? "/employee" : "/login"} replace />;
 };
 
 const LoginRoute: React.FC = () => {
   const { role } = useRole();
+  console.log('LoginRoute role:', role);
   if (role) {
     return <Navigate to="/employee" replace />;
   }
@@ -45,6 +47,8 @@ const LoginRoute: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  console.log('BASE_URL:', process.env.REACT_APP_API_BASE_URL);
+
   return (
     <div className="app-container">
       <RoleProvider>

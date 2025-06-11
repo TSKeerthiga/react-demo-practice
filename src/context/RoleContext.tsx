@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type Role = 'admin' | 'user' | 'viewer' | null;
+export type Role = 'admin' | 'user' | 'viewer' | null;
 
 interface RoleContextType {
     role: Role;
@@ -30,7 +30,9 @@ export const RoleProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     // Custom setRole function that also updates localStorage
     const setRole = (newRole: Role) => {
         if (newRole === null) {
+            localStorage.removeItem('token');
             localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
         } else {
             localStorage.setItem('userRole', newRole);
         }
