@@ -43,7 +43,7 @@ const AddEmployee: React.FC = () => {
             const res = await dispatch(addEmployee(formData));
             if (addEmployee.fulfilled.match(res)) {
                 console.log('Employee added successfully:', res.payload);           
-            setIsDirty(false);
+                setIsDirty(false);
                 navigate('/employee');
             }
            

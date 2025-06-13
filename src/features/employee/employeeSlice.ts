@@ -1,20 +1,16 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { getApiBaseUrl } from "../../utils/apiUtils";
+import { getAuthHeaders } from "../../utils/axiosConfig";
+import { RootState } from "../../app/store";
 
 const API_BASE_URL = getApiBaseUrl();
 
 export const fetchEmployees = createAsyncThunk(
     'employee/fetchEmployees',
-    async () => {
-
-        const response = await axios.get(`${API_BASE_URL}/employees/list`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        });
-
+    async (_, thunkAPI) => {
+        const state = thunkAPI.getState() as RootState;
+        const response = await axios.get(`${API_BASE_URL}/employees/list`, getAuthHeaders(state));
         return response.data;
     }
 );
@@ -22,13 +18,10 @@ export const fetchEmployees = createAsyncThunk(
 export const addEmployee = createAsyncThunk(
     'employee/addEmployee',
     async (employeeData: { name: string; email: string; position: string, department: string }, thunkAPI) => {
+        const state = thunkAPI.getState() as RootState;
+
         try {
-            const response = await axios.post(`${API_BASE_URL}/employees/create`, employeeData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
+            const response = await axios.post(`${API_BASE_URL}/employees/create`, employeeData, getAuthHeaders(state));
 
             return response.data; // This will be used in the reducer to add the new employee to state
 
@@ -42,14 +35,10 @@ export const addEmployee = createAsyncThunk(
 export const updateEmployee = createAsyncThunk(
     'employee/updateEmployee',
     async ({ id, employeeData }: { id: number; employeeData: { name: string; email: string; position: string, department: string } }, thunkAPI) => {
+        const state = thunkAPI.getState() as RootState;
 
         try {
-            const response = await axios.put(`${API_BASE_URL}/employees/${id}`, employeeData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
+            const response = await axios.put(`${API_BASE_URL}/employees/${id}`, employeeData, getAuthHeaders(state));
 
             return response.data; // This will be used in the reducer to update the employee in state
 
@@ -63,17 +52,12 @@ export const updateEmployee = createAsyncThunk(
 export const deleteEmployee = createAsyncThunk(
     'employee/deleteEmployee',
     async (id: number, thunkAPI) => {
+        const state = thunkAPI.getState() as RootState;
         const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
         if (!API_BASE_URL) throw new Error("Missing API base URL");
 
         try {
-            await axios.delete(`${API_BASE_URL}/employees/${id}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-
+            await axios.delete(`${API_BASE_URL}/employees/${id}`, getAuthHeaders(state));
             return id; // This will be used in the reducer to remove the employee from state
 
         } catch (error: any) {
@@ -84,16 +68,12 @@ export const deleteEmployee = createAsyncThunk(
 
 export const fetchEmployWithId = createAsyncThunk(
     'employee/fetchEmployeeById',
-    async (id: number) => {
+    async (id: number, thunkAPI) => {
         const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
         if (!API_BASE_URL) throw new Error("Missing API base URL");
+        const  state = thunkAPI.getState() as RootState;
 
-        const response = await axios.get(`${API_BASE_URL}/employees/${id}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-        });
+        const response = await axios.get(`${API_BASE_URL}/employees/${id}`, getAuthHeaders(state));
 
         return response.data; // This will be used in the reducer to fetch employee by ID
     }

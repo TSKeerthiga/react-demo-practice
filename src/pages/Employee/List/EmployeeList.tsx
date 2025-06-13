@@ -1,6 +1,4 @@
-import React, { useEffect } from "react"
-import { useRole } from "../../../context/RoleContext";
-import { useEmployees } from "../../../context/EmployeeContext";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import './EmployeeList.scss';
 import { useAppDispatch, useAppSelector } from "../../../Hook/hooks";
@@ -8,14 +6,12 @@ import { deleteEmployee, fetchEmployees } from "../../../features/employee/emplo
 import Header from "../../../components/Header/Header";
 
 const EmployeeList: React.FC = () => {
-    const { role, setRole } = useRole();
-    console.log('EmployeeList role:', role);
     const dispatch = useAppDispatch();
-    // const { employees, deleteEmployee } = useEmployees();
     const navigate = useNavigate();
 
     const employees = useAppSelector((state) => state.employees.employees);
     const username = useAppSelector((state) => state.auth.username);
+    const role = useAppSelector((state) => state.auth.role);
 
     useEffect(() => {
         dispatch(fetchEmployees());
@@ -23,13 +19,15 @@ const EmployeeList: React.FC = () => {
 
     const handleDelete = (id: number) => {
         if (role !== 'admin') return;
-        // deleteEmployee(id);
-        dispatch(deleteEmployee(id)).then(() => {
-            console.log(`Employee with ID ${id} deleted successfully.`);
-            fetchEmployees(); // Refresh the employee list after deletion
-        }).catch((error: any) => {
-            console.error(`Failed to delete employee with ID ${id}:`, error);
-        });
+
+        dispatch(deleteEmployee(id))
+            .then(() => {
+                console.log(`Employee with ID ${id} deleted successfully.`);
+                dispatch(fetchEmployees()); // Refresh the list after deletion
+            })
+            .catch((error: any) => {
+                console.error(`Failed to delete employee with ID ${id}:`, error);
+            });
     };
 
     const canEdit = role === 'admin' || role === 'user';
@@ -41,9 +39,7 @@ const EmployeeList: React.FC = () => {
             <Header />
 
             <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h2 className="text-xl font-bold">Employee List</h2>
-                </div>
+                <h2 className="text-xl font-bold">Employee List</h2>
             </div>
 
             {canAdd && (
@@ -84,6 +80,6 @@ const EmployeeList: React.FC = () => {
             </ul>
         </div>
     );
-}
+};
 
 export default EmployeeList;

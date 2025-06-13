@@ -1,5 +1,7 @@
 import axios from "axios";
 import { getApiBaseUrl } from "../../utils/apiUtils";
+import { getAuthHeaders } from "../../utils/axiosConfig";
+import { RootState } from "../../app/store";
 
 const API_BASE_URL = getApiBaseUrl();
 
@@ -13,23 +15,16 @@ export const loginAPI = async (email: string, password: string) => {
     return response.data;
 };
 
-export const logoutAPI = async () => {
-    try {
-            const token = localStorage.getItem('token');
-            await axios.post(`${API_BASE_URL}/auth/logout`, {}, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+export const logoutAPI = async (thunkAPI: any) => {
+  try {
+    const state = thunkAPI.getState() as RootState;
 
-            // Optional: clear on server success only
-            localStorage.removeItem('token');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('username');
+    // Call backend to logout (optional)
+    await axios.post(`${API_BASE_URL}/auth/logout`, {}, getAuthHeaders(state));
 
-            return true;
-        } catch (error: any) {
-                console.log("Login response:", error);
-
-        }
+    return true;
+  } catch (error: any) {
+    console.error("Logout failed:", error);
+    throw error;
+  }
 };

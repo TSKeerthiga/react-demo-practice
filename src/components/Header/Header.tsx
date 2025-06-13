@@ -4,22 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../../Hook/hooks';
 import { RootState } from '../../app/store';
 import { logoutUser } from '../../features/auth/authSlice';
-import { useRole } from '../../context/RoleContext';
+import { persistor } from '../../app/store'; // Make sure it's exported
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const username = useSelector((state: RootState) => state.auth.username);
-    const { setRole } = useRole();
 
     const handleLogout = async () => {
         try {
             await dispatch(logoutUser()).unwrap();
-            setRole(null);
+            // Clear persisted state
+            await persistor.purge();
         } catch (err) {
             console.error("Logout API failed:", err);
         } finally {
-            localStorage.clear();
             navigate('/login');
         }
     };
@@ -28,7 +27,9 @@ const Header: React.FC = () => {
         <header className="flex items-center justify-between px-6 py-4 bg-white shadow-md rounded-2xl mb-6 border border-gray-200">
             <div>
                 <h1 className="text-2xl font-bold text-gray-800">Employee Portal</h1>
-                <p className="text-sm text-gray-500 mt-1">Welcome, <span className="font-medium text-gray-700">{username}</span></p>
+                <p className="text-sm text-gray-500 mt-1">
+                    Welcome, <span className="font-medium text-gray-700">{username}</span>
+                </p>
             </div>
             <button
                 onClick={handleLogout}

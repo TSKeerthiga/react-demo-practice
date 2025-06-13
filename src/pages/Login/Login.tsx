@@ -1,48 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../Hook/hooks';
 import { useNavigate } from 'react-router-dom';
-import { validateUser } from '../../data/users';
-import { useRole } from '../../context/RoleContext';
-import './Login.scss';
 import { loginUser } from '../../features/auth/authSlice';
-import { mapBackendRole } from '../../data/mapBackendRole';
+import './Login.scss';
 
 const Login: React.FC = () => {
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState<string>('');
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { status } = useAppSelector((state: { auth: any; }) => state.auth);
-    const { role, setRole } = useRole();
 
+    const { token, role } = useAppSelector((state) => state.auth);
+
+    // Redirect if already logged in
     useEffect(() => {
-        // If user is already logged in, redirect to employee list
-        if (role) {
+        if (token && role) {
             navigate('/employee', { replace: true });
         }
-    }, [role, navigate]);
+    }, [token, role, navigate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-        setError(''); // Clear error when user types
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setError('');
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // const user = validateUser(formData.email, formData.password);
         try {
-            const res = await dispatch(loginUser({ email: formData.email, password: formData.password })).unwrap();
-            console.log('Login response:', res);
+            const res = await dispatch(
+                loginUser({ email: formData.email, password: formData.password })
+            ).unwrap();
+
             if (res) {
-                // throw new Error(res.message || 'Login failed');
                 console.log('Login successful:', res);
-                setRole(mapBackendRole(res.roles)); // Set the role in context
+                // Redux handles role/token now, no need to set context
                 navigate('/employee', { replace: true });
             }
         } catch (err: any) {
@@ -51,10 +42,8 @@ const Login: React.FC = () => {
         }
     };
 
-    // If user is already logged in, don't render the form
-    if (role) {
-        return null;
-    }
+    // Don’t show login if already logged in
+    if (token && role) return null;
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -73,7 +62,7 @@ const Login: React.FC = () => {
                                 name="email"
                                 type="email"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                 placeholder="Email address"
                                 value={formData.email}
                                 onChange={handleChange}
@@ -86,7 +75,7 @@ const Login: React.FC = () => {
                                 name="password"
                                 type="password"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                 placeholder="Password"
                                 value={formData.password}
                                 onChange={handleChange}
@@ -103,7 +92,7 @@ const Login: React.FC = () => {
                     <div>
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             Sign in
                         </button>
@@ -114,4 +103,4 @@ const Login: React.FC = () => {
     );
 };
 
-export default Login; 
+export default Login;
