@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEmployees } from '../../../context/EmployeeContext';
 import EmployeeForm from '../../../components/EmployeeForm/EmployeeForm';
 import type { Employee } from '../../../types/Employee';
 import { useDispatch } from 'react-redux';
