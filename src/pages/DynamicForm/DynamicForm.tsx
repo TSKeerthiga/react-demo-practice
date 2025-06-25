@@ -28,7 +28,7 @@ const DynamicForm: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto p-6 mt-10 border rounded-lg shadow-md bg-white">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Dynamic Form Builder</h1>
+        <h1 className="title sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800">Dynamic Form Builder</h1>
         <div className="flex gap-3">
           <button
             type="button"
@@ -62,8 +62,12 @@ const DynamicForm: React.FC = () => {
         {isPreview ? (
           <PreviewComponent />
         ) : (
-          <>
-            <table className="w-full text-left border border-collapse rounded overflow-hidden shadow-sm">
+          <div className='overflow-x-auto'>
+            <table className="w-full table-auto 
+              min-w-[400px] 
+              sm:min-w-[640px] 
+              md:min-w-[768px] 
+              text-left border border-collapse rounded overflow-hidden shadow-sm">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="p-3 border">Name</th>
@@ -118,7 +122,7 @@ const DynamicForm: React.FC = () => {
                       ) : field.type === 'button' ? (
                         <button
                           type="button"
-                          className="w-full px-2 py-1 bg-blue-500 text-white text-sm rounded shadow"
+                          className="px-4 py-2 mx-auto bg-blue-500 text-white font-medium rounded-lg shadow transition"
                           disabled
                         >
                           {field.value || 'Submit'}
@@ -148,21 +152,21 @@ const DynamicForm: React.FC = () => {
                 ))}
               </tbody>
             </table>
-          </>
+          </div>
         )}
 
         {!isPreview && (
           <div className="flex justify-between mt-6">
             <button
               type="button"
-              className="px-5 py-2 bg-green-600 text-white font-medium rounded-lg shadow hover:bg-green-700 transition"
+              className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg shadow hover:bg-green-700 transition"
               onClick={handleAddField}
             >
               + Add Field
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 transition"
+              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 transition"
             >
               Submit
             </button>

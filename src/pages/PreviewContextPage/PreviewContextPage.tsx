@@ -9,25 +9,17 @@ const PreviewContextPage: React.FC = () => {
   const hasButtonField = fields.some((field) => field.type === 'button');
 
   const handleBack = () => {
-    if (hasButtonField) {
-      alert("This preview contains a 'button' field. Navigation is disabled.");
-      return;
-    }
     navigate('/dynamic-form');
   };
 
   return (
     <div className="max-w-2xl mx-auto p-8 mt-10 bg-white border rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">Preview (Context)</h2>
+        <h2 className="title text-3xl font-bold text-gray-800 sm:text-xl">Preview (Context)</h2>
         <button
           type="button"
           onClick={handleBack}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            hasButtonField
-              ? 'bg-red-500 text-white cursor-not-allowed'
-              : 'bg-gray-700 text-white hover:bg-gray-800'
-          }`}
+          className={`px-4 py-2 rounded-lg font-medium transition bg-gray-700 text-white hover:bg-gray-800`}
         >
           Back to Form
         </button>
@@ -44,7 +36,7 @@ const PreviewContextPage: React.FC = () => {
               </label>
               {field.type === 'button' ? (
                 <button
-                  className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm cursor-not-allowed"
+                  className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm cursor-not-allowed"
                   disabled
                 >
                   {field.value || 'Submit'}

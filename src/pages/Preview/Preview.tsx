@@ -20,7 +20,7 @@ const Preview: React.FC = () => {
 
     return (
         <div className="max-w-xl mx-auto p-6 mt-8 border rounded shadow">
-            <h1 className="text-2xl font-bold mb-4">Preview Submitted Fields</h1>
+            <h1 className="title text-2xl font-bold mb-4 sm:text-lg">Preview Submitted Fields</h1>
             <form className="space-y-4">
                 {fields.map((field) => (
                     <div key={field.id}>
@@ -31,7 +31,7 @@ const Preview: React.FC = () => {
                         {field.type === 'button' ? (
                             <button
                                 type="button"
-                                className="w-full px-4 py-2 bg-blue-600 text-white rounded"
+                                className="px-4 py-2 bg-blue-600 font-medium text-white rounded"
                                 onClick={() => alert(`Button "${JSON.stringify(field) || 'Submit'}" clicked — no action taken.`)}
                             >
                                 {field.value || 'Submit'}
@@ -47,7 +47,7 @@ const Preview: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => navigate('/dynamic-form')}
-                        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                        className="px-4 py-2 bg-gray-600 text-white font-medium rounded hover:bg-gray-700"
                     >
                         Back to Dynamic Form
                     </button>
