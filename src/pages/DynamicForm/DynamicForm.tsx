@@ -27,9 +27,20 @@ const DynamicForm: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-6 mt-10 border rounded-lg shadow-md bg-white">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="title sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-800">Dynamic Form Builder</h1>
-        <div className="flex gap-3">
+
+      <div className={
+        `mx-2 grid 
+        ${!isPreview ?
+          'lg:grid-cols-4  md:grid-cols-3' : 'lg:grid-cols-3  md:grid-cols-2'}
+        grid-cols-1 sm:grid-cols-1 gap-3 mb-8 `
+      }>
+        <div className='flex justify-center lg:justify-start md:justify-start sm:justify-start col-span-1 lg:col-span-2 md:col-span-1 sm:col-span-1'>
+          <h1 className="title sm:text-xl md:text-xl lg:text-3xl xl:text-4xl font-bold text-gray-800">
+            Dynamic Form Builder
+          </h1>
+        </div>
+
+        <div className='flex justify-center lg:justify-end md:justify-end sm:justify-end'>
           <button
             type="button"
             onClick={() => setIsPreview(!isPreview)}
@@ -45,8 +56,10 @@ const DynamicForm: React.FC = () => {
               </>
             )}
           </button>
+        </div>
+        {!isPreview && (
+          <div className='flex justify-center lg:justify-end md:justify-end sm:justify-end'>
 
-          {!isPreview ? (
             <button
               type="button"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow transition"
@@ -54,9 +67,11 @@ const DynamicForm: React.FC = () => {
             >
               Preview Context Page
             </button>
-          ) : ''}
-        </div>
+
+          </div>
+        )}
       </div>
+
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {isPreview ? (

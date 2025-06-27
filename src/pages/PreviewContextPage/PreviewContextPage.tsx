@@ -14,15 +14,19 @@ const PreviewContextPage: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-8 mt-10 bg-white border rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="title text-3xl font-bold text-gray-800 sm:text-xl">Preview (Context)</h2>
-        <button
-          type="button"
-          onClick={handleBack}
-          className={`px-4 py-2 rounded-lg font-medium transition bg-gray-700 text-white hover:bg-gray-800`}
-        >
-          Back to Form
-        </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 sm:grid-cols-2 mb-8">
+        <div className='mx-2 my-2 flex justify-center lg:justify-start md:justify-start sm:justify-start'>
+          <h2 className="title text-3xl font-bold text-gray-800 sm:text-xl">Preview (Context)</h2>
+        </div>
+        <div className='flex justify-center lg:justify-end md:justify-end sm:justify-end my-2'>
+          <button
+            type="button"
+            onClick={handleBack}
+            className={`px-4 py-2 rounded-lg font-medium transition bg-gray-700 text-white hover:bg-gray-800`}
+          >
+            Back to Form
+          </button>
+        </div>
       </div>
 
       {fields.length === 0 ? (
