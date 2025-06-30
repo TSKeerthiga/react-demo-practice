@@ -99,6 +99,7 @@ export const useDynamicFormBuilder = () => {
         handleFieldChange,
         handleSubmit,
         handleDeleteField,
+        setFields,
         lastFieldRef
     };
 

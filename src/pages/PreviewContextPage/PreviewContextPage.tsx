@@ -6,8 +6,6 @@ const PreviewContextPage: React.FC = () => {
   const { fields } = usePreviewContext();
   const navigate = useNavigate();
 
-  const hasButtonField = fields.some((field) => field.type === 'button');
-
   const handleBack = () => {
     navigate('/dynamic-form');
   };
