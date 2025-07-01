@@ -12,6 +12,7 @@ import Preview from './pages/Preview/Preview';
 import { FormProvider } from './context/FormContext';
 import PreviewContextPage from './pages/PreviewContextPage/PreviewContextPage';
 import { PreviewProvider } from './context/PreviewContext';
+import ExcelReplication from './pages/ExcelReplication/ExcelRepliation';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -59,7 +60,9 @@ const App: React.FC = () => {
             <Route path="/login" element={<LoginRoute />} />
             <Route path="/dynamic-form" element={<DynamicForm />} />
             <Route path="/preview" element={<Preview />} />
-            <Route path="/preview-context" element={<PreviewContextPage />} /> {/* 👈 New route */}
+            <Route path="/preview-context" element={<PreviewContextPage />} /> 
+            <Route path="/excel-replication" element={<ExcelReplication />} />
+
             <Route path="/" element={<InitialRedirect />} />
 
             <Route path="/employee" element={
