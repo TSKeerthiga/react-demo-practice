@@ -12,7 +12,7 @@ import Preview from './pages/Preview/Preview';
 import { FormProvider } from './context/FormContext';
 import PreviewContextPage from './pages/PreviewContextPage/PreviewContextPage';
 import { PreviewProvider } from './context/PreviewContext';
-import ExcelReplication from './pages/ExcelReplication/ExcelRepliation';
+import ExcelReplication from './pages/ExcelReplication/ExcelReplication';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

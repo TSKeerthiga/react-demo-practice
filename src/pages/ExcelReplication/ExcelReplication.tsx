@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { boolean } from "zod";
-import { es } from "zod/dist/types/v4/locales";
 const sampleData = [
   {
     Id: 1,
@@ -37,8 +35,57 @@ type CellProps = {
   onChange: (val: string) => void;
   bold?: boolean;
   onKeyUp?: any;
-  onClick?: any;
+  onClick?: (
+    cellKey: string,
+    modifiers: { shift: boolean; ctrl: boolean; alt: boolean; },
+    rawEvent?: React.MouseEvent<HTMLInputElement>
+  ) => void;
   className?: string;
+};
+
+const parseCell = (cell: string) => {
+  const match = cell.match(/^([A-Z]+)(\d+)$/);
+  if (!match) return null;
+  return { col: match[1], row: parseInt(match[2]) };
+};
+
+const getColumnLabel = (index: number): string => {
+  let label = "";
+  while (index >= 0) {
+    label = String.fromCharCode((index % 26) + 65) + label;
+    index = Math.floor(index / 26) - 1;
+  }
+  return label;
+};
+
+const getNextCell = (cell: string, direction: string) => {
+  const parsed = parseCell(cell);
+  if (!parsed) return cell;
+  let { row, col } = parsed;
+  let colIndex = col.charCodeAt(0) - 65;
+  if (direction === "ArrowUp") row = Math.max(1, row - 1);
+  if (direction === "ArrowDown") row += 1;
+  if (direction === "ArrowLeft") colIndex = Math.max(0, colIndex - 1);
+  if (direction === "ArrowRight") colIndex += 1;
+  return `${getColumnLabel(colIndex)}${row}`;
+};
+
+const getRange = (start: string, end: string): string[] => {
+  const a = parseCell(start);
+  const b = parseCell(end);
+  if (!a || !b) return [];
+  const startRow = Math.min(a.row, b.row);
+  const endRow = Math.max(a.row, b.row);
+  const startCol = Math.min(a.col.charCodeAt(0), b.col.charCodeAt(0));
+  const endCol = Math.max(a.col.charCodeAt(0), b.col.charCodeAt(0));
+
+  const cells: string[] = [];
+  for (let r = startRow; r <= endRow; r++) {
+    for (let c = startCol; c <= endCol; c++) {
+      cells.push(`${String.fromCharCode(c)}${r}`);
+    }
+  }
+  return cells;
 };
 
 function useCurrentAndPrevious<T>(initialValue: T): [T, (val: T) => void, T | undefined] {
@@ -60,7 +107,14 @@ const Cell: React.FC<CellProps> = React.memo(({ cellKey, value, onChange, onClic
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onClick={(e) => onClick(cellKey)}
+        onClick={(e) => {
+          const modifiers = {
+            shift: e.shiftKey,
+            ctrl: e.ctrlKey,
+            alt: e.altKey,
+          };
+          onClick?.(cellKey, modifiers, e);
+        }}
         className={`w-full h-10 text-center border-none focus:outline ${bold ? 'font-bold bg-gray-80' : ''} ${className}`}
         onKeyUp={(e) => onKeyUp(e)}
       />
@@ -76,6 +130,10 @@ const ExcelReplication: React.FC = () => {
   const [validateTabShiftInputName, setValidateTabShiftInputName] = useState<string | undefined>('');
   const [selectedCells, setSelectedCells] = useState<string[]>([]);
   const [isExtendedSelect, setIsExtendedSelect] = useState(false);
+  const [isValidateMultiplePress, setIsValidateMultiplePress] = useState(false);
+  const [ctrlShiftAnchor, setCtrlShiftAnchor] = useState<string | null>(null);
+  const [focusedCell, setFocusedCell] = useState<string>('A1');
+  const [anchorCell, setAnchorCell] = useState<string | null>(null);
 
   const getColumnLabel = (index: number): string => {
     let label = '';
@@ -103,7 +161,6 @@ const ExcelReplication: React.FC = () => {
         table[getCellKey(i, j)] = '';
       }
     }
-    // console.log(table)
     return table;
   };
 
@@ -134,153 +191,85 @@ const ExcelReplication: React.FC = () => {
 
   const handleChangeCell = useCallback(
     (key: string, value: string) => {
-      // console.log(key, value)
-      setTableData((prev) => {
-        if (prev[key] === value) return prev;
-        return { ...prev, [key]: value };
-      });
+      if (tableData[key] === value) return;
+
+      setTableData((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
     },
-    []
+    [tableData]
   );
 
-  const nextColName = (currentName: string, type: string) => {
-    const match = currentName.match(/^([A-Z]+)(\d+)$/);
-    if (!match) return;
-
-    let col = match[1];
-    let row = parseInt(match[2]);
-
-    switch (type) {
-      case 'ArrowDown':
-        row += 1;
-        break;
-
-      case 'ArrowUp':
-        row = Math.max(1, row - 1); // prevent going above 1
-        break;
-
-      case 'ArrowLeft': {
-        let colIndex = col.charCodeAt(0) - 65;
-        if (colIndex > 0) col = String.fromCharCode(colIndex + 64);
-        break;
-      }
-
-      case 'ArrowRight': {
-        let colIndex = col.charCodeAt(0) - 65;
-        if (colIndex < 25) col = String.fromCharCode(colIndex + 66);
-        break;
-      }
-
-      case 'SCArrowDown':
-        handleCtrlShiftArrow(match, "Down");
-        return;
-
-      case 'SCArrowUp':
-        handleCtrlShiftArrow(match, "Up");
-        return;
-
-      case 'selectAll':
-        handleSelectAll();
-        return;
-
-      default:
-        break;
-    }
-
-    return `${col}${row}`;
-  };
-
-
   const handleCtrlShiftArrow = (match: any, direction: string) => {
-    const col = match[1]; // e.g., "B"
-    const row = parseInt(match[2]); // e.g., 2
+    const baseKey = ctrlShiftAnchor || `${match[1]}${match[2]}`;
+    const anchorMatch = baseKey.match(/^([A-Z]+)(\d+)$/);
+    if (!anchorMatch) return;
+
+    const col = anchorMatch[1];
+    const row = parseInt(anchorMatch[2]);
     const currentKey = `${col}${row}`;
     const currentVal = tableData[currentKey];
     let selected: string[] = [];
 
     if (direction === "Down") {
-      if (isExtendedSelect) {
-        console.log("2nd press → select everything down", row, col);
-        // 2nd press → select everything down
-        for (let i = row - 1; i <= rowCount; i++) {
+      if (isExtendedSelect && !isValidateMultiplePress) {
+        for (let i = row; i <= rowCount; i++) {
           selected.push(`${col}${i}`);
         }
-      } else {
-        if (currentVal && currentVal.trim() !== '') {
-          // 1st press, current cell has value → select all non-empty below
-          for (let i = row; i <= rowCount; i++) {
-            const key = `${col}${i}`;
-            const val = tableData[key];
-            if (val && val.trim() !== '') {
-              selected.push(key);
-            } else {
-              break;
-            }
-          }
-        } else {
-          // 1st press, current cell is empty → select contiguous empty cells
-          console.log("1st press, current cell is empty → select contiguous empty cells", row, col);
-          for (let i = row; i <= rowCount; i++) {
-            const key = `${col}${i}`;
-            const val = tableData[key];
-            if (!val || val.trim() === '') {
-              selected.push(key);
-            } else {
-              break;
-            }
+        setIsValidateMultiplePress(true);
+      } else if (!isExtendedSelect) {
+        setCtrlShiftAnchor(currentKey);
+        const matchType = currentVal?.trim() ? "nonEmpty" : "empty";
+
+        for (let i = row; i <= rowCount; i++) {
+          const key = `${col}${i}`;
+          const val = tableData[key];
+          const isNonEmpty = val && val.trim() !== "";
+
+          if (
+            (matchType === "nonEmpty" && isNonEmpty) ||
+            (matchType === "empty" && !isNonEmpty)
+          ) {
+            selected.push(key);
+          } else {
+            break;
           }
         }
-      }
 
-      setIsExtendedSelect(true);
-    }
-    else if (direction === "Up") {
-      if (isExtendedSelect) {
-        console.log("2nd press → select everything up", row, col);
-        // 2nd press → select everything up
-        for (let i = row + 1; i >= 1; i--) {
+        setIsExtendedSelect(true);
+      }
+    } else if (direction === "Up") {
+      if (isExtendedSelect && !isValidateMultiplePress) {
+        for (let i = row; i >= 1; i--) {
           selected.push(`${col}${i}`);
         }
-      } else {
-        if (currentVal && currentVal.trim() !== '') {
-          // 1st press, current cell has value → select all non-empty above
-          for (let i = row ; i >= 1; i--) {
-            const key = `${col}${i}`;
-            const val = tableData[key];
-            if (val && val.trim() !== '') {
-              selected.push(key);
-            } else {
-              break;
-            }
-          }
-        } else {
-          // 1st press, current cell is empty → select contiguous empty cells above
-          console.log("1st press, current cell is empty → select contiguous empty cells", row, col);
-          for (let i = row ; i >= 1; i--) {
-            const key = `${col}${i}`;
-            const val = tableData[key];
-            if (!val || val.trim() === '') {
-              selected.push(key);
-            } else {
-              break;
-            }
+        setIsValidateMultiplePress(true);
+      } else if (!isExtendedSelect) {
+        setCtrlShiftAnchor(currentKey);
+        const matchType = currentVal?.trim() ? "nonEmpty" : "empty";
+
+        for (let i = row; i >= 1; i--) {
+          const key = `${col}${i}`;
+          const val = tableData[key];
+          const isNonEmpty = val && val.trim() !== "";
+
+          if (
+            (matchType === "nonEmpty" && isNonEmpty) ||
+            (matchType === "empty" && !isNonEmpty)
+          ) {
+            selected.push(key);
+          } else {
+            break;
           }
         }
+
+        setIsExtendedSelect(true);
       }
-
-      setIsExtendedSelect(true);
     }
 
-
-    if (selected.length > 0) {
-      const lastCell = selected[selected.length - 1];
-      console.log("lastCell", lastCell)
-      setSelectedCells(selected);
-      focusInput(lastCell);
-      setInputName(lastCell);
-    }
+    selectCellsAndInput(selected);
   };
-
 
   const handleSelectAll = () => {
     const selected: string[] = [];
@@ -294,7 +283,10 @@ const ExcelReplication: React.FC = () => {
         }
       }
     }
-    console.log("Selected Cells:", selected);
+    selectCellsAndInput(selected);
+  };
+
+  const selectCellsAndInput = (selected: any) => {
     if (selected.length > 0) {
       const lastCell = selected[selected.length - 1];
       console.log("lastCell", lastCell)
@@ -302,8 +294,7 @@ const ExcelReplication: React.FC = () => {
       focusInput(lastCell);
       setInputName(lastCell);
     }
-  };
-
+  }
 
   const focusInput = (nextCellValue: any) => {
     // Automatically focus the new cell
@@ -315,61 +306,90 @@ const ExcelReplication: React.FC = () => {
   }
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    let currentName: any = e.currentTarget.name;
-    console.log(e, e.key, validateTabShiftInputName, currentName)
-    if (
-      e.shiftKey &&
-      e.ctrlKey &&
-      e.key === "ArrowDown"
-    ) {
-      console.log("Shift + Ctrl + ArrowDown detected", currentName);
-      nextColName(currentName, 'SCArrowDown');
-    } else if (
-      e.shiftKey &&
-      e.ctrlKey &&
-      e.key === "ArrowUp"
-    ) {
-      nextColName(currentName, 'SCArrowUp');
-
-    } else if (e.ctrlKey && e.key.toLowerCase() === 'a') {
-      nextColName(currentName, 'selectAll');
-    }
-
-    if (e.key === 'Tab' && e.shiftKey) {
-      setValidateTabShiftInputName(currentName);
-    }
+    const currentName = e.currentTarget.name;
 
     if (e.key === 'Enter') {
+      e.preventDefault();
       if (editModeCell !== currentName) {
-        // 1st Enter press → enter edit mode
         setEditModeCell(currentName);
       } else {
-        // Parse column (e.g. "B") and row (e.g. "2")
-        if (validateTabShiftInputName != '') {
-          currentName = validateTabShiftInputName;
-        }
-        const nextCell: any = nextColName(currentName, '')
-
+        const nextCell = getNextCell(currentName, 'ArrowDown');
+        setEditModeCell(null);
         setInputName(nextCell);
-
         focusInput(nextCell);
       }
-    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      // Handle arrow keys to navigate cells
-      e.preventDefault(); // Prevent default scrolling behavior
-      let nextCell: any;
-      nextCell = nextColName(currentName, e.key)
-
+    } else if (e.shiftKey && e.ctrlKey && e.key === "ArrowDown") {
+      handleCtrlShiftArrow(parseCell(currentName), "Down");
+    } else if (e.shiftKey && e.ctrlKey && e.key === "ArrowUp") {
+      handleCtrlShiftArrow(parseCell(currentName), "Up");
+    } else if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+      handleSelectAll();
+    }
+    else if (e.shiftKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      if (!anchorCell) {
+        setAnchorCell(currentName);
+      }
+      console.log("handle key press function", e.shiftKey)
+      const next = getNextCell(currentName, e.key);
+      const range = getRange(anchorCell || currentName, next);
+      setSelectedCells(range);
+      setFocusedCell(next);
+      focusInput(next);
+      e.preventDefault();
+    }
+    else if (
+      !e.shiftKey &&
+      !e.ctrlKey &&
+      ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)
+    ) {
+      e.preventDefault();
+      const nextCell = getNextCell(currentName, e.key);
       if (nextCell) {
         focusInput(nextCell);
       }
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      setValidateTabShiftInputName(currentName);
     }
   };
-  const handleOnClick = (cellKey: string) => () => {
+
+  const handleOnClick = (
+    cellKey: string,
+    modifiers: { shift: boolean; ctrl: boolean; alt: boolean; },
+    e?: React.MouseEvent<HTMLInputElement>
+  ) => {
+    const { shift, ctrl, alt } = modifiers;
+
+    console.log("Click on", cellKey, {
+      shift,
+      ctrl,
+      alt,
+      anchorCell,
+    });
+    console.log("modifiers", modifiers, "anchorCell", anchorCell);
+    if (shift && anchorCell) {
+      console.log("Shift + click detected", cellKey, "anchorCell", anchorCell);
+      const newRange = getRange(anchorCell, cellKey);
+      setSelectedCells(newRange);
+      setFocusedCell(cellKey);
+      focusInput(cellKey);
+
+      if (!ctrlShiftAnchor) {
+        setCtrlShiftAnchor(anchorCell);
+      }
+
+      setIsExtendedSelect(true);
+      setIsValidateMultiplePress(false);
+    } else {
+      setAnchorCell(cellKey);
+      setFocusedCell(cellKey);
+      setSelectedCells([]);
+      setCtrlShiftAnchor(cellKey);
+      setIsExtendedSelect(false);
+      setIsValidateMultiplePress(false);
+    }
+
     setValidateTabShiftInputName(cellKey);
-    setSelectedCells([]);
-    setIsExtendedSelect(false)
-  }
+  };
 
 
   return (
@@ -401,7 +421,7 @@ const ExcelReplication: React.FC = () => {
                       value={tableData[key] || ''}
                       onKeyUp={handleKeyPress}
                       onChange={(val) => handleChangeCell(key, val)}
-                      onClick={handleOnClick(key)}
+                      onClick={(cellKey, modifiers, e) => handleOnClick(cellKey, modifiers, e)}
                       bold={isHeaderRow}
                       className={selectedCells.includes(key) ? 'bg-blue-200 border-2 border-blue-600' : ''}
 
